@@ -1,4 +1,11 @@
 # 认识所有权
+## 本章重点
+1. 所有权的概念、所有权的移动、克隆、拷贝
+2. 不可变引用与可变引用
+3. 切片slice
+
+
+[TOC]
 所有权是Rust的特性，它让Rust无需垃圾回收器(garbage collector)即可保证内存安全。在本章中，我们将讨论所有权以及相关功能：借用、slice以及Rust如何在内存中存放数据。
 ## 4.1 什么是所有权？
 Rust的核心功能之一是所有权。所有运行的程序都必须使用计算机内存的方式：
@@ -68,6 +75,7 @@ fn main() {
     println!("s1 = {}, s2 = {}", s1, s2);
 }
 ```
+![](20240624122336.png){width="50%" height="50%"}
 #### 只在栈上的数据：拷贝
 ```rust
 fn main() {
@@ -78,7 +86,7 @@ fn main() {
 }
 ```
 像整型这样的在编译时已知大小的类型被整个存储在栈上，所以拷贝其实际的值是快速的。Rust有一个叫做`copy`trait的特殊标注，若实现了`copy`trait，那么一个旧的变量在将其赋值给其他变量后仍然可用。
-如下实现`copy`的类型：
+**如下实现`copy`的类型**：
 1. 整数类型
 2. 布尔类型
 3. 浮点类型
@@ -112,7 +120,7 @@ fn makes_copy(some_integer: i32) { // some_integer 进入作用域
 当尝试在调用`takes_ownership`后使用`s`时，Rust会在编译时报错
 #### 返回值与作用域
 变量的所有权总是遵循相同的模式：将值赋给另一个变量时移动它。当持有堆中数据值的变量离开作用域时，其值将通过`drop`被清理掉，除非数据被移动为另一个变量所有
-如果我们想要函数使用一个值但不获取所有权，我们可以使用元组来返回多个值
+**如果我们想要函数使用一个值但不获取所有权，我们可以使用元组来返回多个值**
 ```rust
 fn main(){
     let s1 = String::from("hello");
@@ -129,3 +137,187 @@ fn calculate_length(s: String) -> (String, usize){
 }
 ```
 
+## 4.2 引用与借用
+### 引用符
+```rust
+fn main(){
+  let s1 = String::from("hello");
+
+  let len = calculate_length(&s1);
+
+  println!("The length of '{}' is {}.", s1, len);
+}
+
+fn calculate_length(s: &String) -> usize {
+  s.len()
+}
+```
+![](20240624123946.png){width="50%" height="50%"}
+> `&`符号就是**引用**，它们允许你使用值但不获取其所有权；`*`是**解引用**运算符
+### 借用不能修改变量
+我们将创建一个引用的行为称为借用，不能修改借用的变量
+```rust
+fn main(){
+  let s = String::from("hello");
+
+  change(&s);
+}
+
+fn change(some_string: &String){
+  some_string.push_str(",world");
+}
+```
+报错：
+`error: could not compile ownership due to previous error`
+### 可变引用
+```rust
+fn main(){
+  let mut s = String::from("hello");
+
+  change(&mut s);
+}
+
+fn change(some_string: &mut String){
+  some_string.push_str(",world");
+}
+```
+#### 同一时间不能创建两个可变引用
+```rust
+let mut s = String::from("hello");
+
+let r1 = &mut s;
+let r2 = &mut s;
+
+println!("{}, {}",r1, r2);
+```
+报错：
+`error: could not compile ownership due to previous error`
+#### 不能同时拥有不可变引用和可变引用
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    let r1 = &s; // 没问题
+    let r2 = &s; // 没问题
+    let r3 = &mut s; // 大问题
+
+    println!("{}, {}, and {}", r1, r2, r3);
+}
+```
+报错：
+`error: could not compile ownership due to previous error`
+**注意一个引用的作用域从声明的地方开始一直持续到最后一次使用为止。**所以如下代码是可以编译的：
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    let r1 = &s; // 没问题
+    let r2 = &s; // 没问题
+    println!("{} and {}", r1, r2);
+    // 此位置之后 r1 和 r2 不再使用
+
+    let r3 = &mut s; // 没问题
+    println!("{}", r3);
+}
+```
+### 悬垂引用
+在具有指针的语言中，很容易通过释放内存时保留指向它的指针而错误地生成一个 悬垂指针（dangling pointer），所谓悬垂指针是其指向的内存可能已经被分配给其它持有者。
+```rust
+fn main() {
+    let reference_to_nothing = dangle();
+}
+
+fn dangle() -> &String {
+    let s = String::from("hello");
+
+    &s
+}
+```
+报错：
+`error: could not compile ownership due to previous error`
+解决方法：
+```rust
+fn main() {
+    let string = no_dangle();
+}
+
+fn no_dangle() -> String {
+    let s = String::from("hello");
+
+    s
+}
+```
+### 引用的规则
+- 在任意给定时间，要么 只能有一个可变引用，要么 只能有多个不可变引用。
+- 引用必须总是有效的。
+
+## 4.3 切片 slice
+另一个没有所有权的数据类型是`slice`。`slice`允许引用集合中一段连续的元素序列，而不用引用整个集合。
+### 字符串slice
+**字符串slice**是`string`中一部分值的引用
+```rust
+fn main() {
+    let s = String::from("hello world");
+
+    let hello = &s[0..5];
+    let world = &s[6..11];
+}
+```
+可以使用`[starting_index..ending_index]`指定的range创建一个slice。在其内部，slice的数据结构存储了slice的开始位置和长度
+![](20240624133118.png){width="50%" height="50%"}
+> rust中`..`range语法的索引：
+> 1. 如果想要从索引 0 开始，可以不写两个点号之前的值
+```rust
+#![allow(unused)]
+fn main() {
+let s = String::from("hello");
+
+let slice = &s[0..2];
+let slice = &s[..2];
+}
+```
+> 2. 如果 slice 包含 `String` 的最后一个字节，也可以舍弃尾部的数字
+```rust
+
+#![allow(unused)]
+fn main() {
+let s = String::from("hello");
+
+let len = s.len();
+
+let slice = &s[3..len];
+let slice = &s[3..];
+}
+```
+> 3. 也可以同时舍弃这两个值来获取整个字符串的 slice
+```rust
+
+#![allow(unused)]
+fn main() {
+let s = String::from("hello");
+
+let len = s.len();
+
+let slice = &s[0..len];
+let slice = &s[..];
+}
+```
+#### 字符串字面量就是slice
+```rust
+
+#![allow(unused)]
+fn main() {
+let s = "Hello, world!";
+}
+```
+这里 `s` 的类型是 `&str`：它是一个指向二进制程序特定位置的 slice。这也就是为什么字符串字面量是不可变的；`&str` 是一个不可变引用。
+### 其他类型的slice
+```rust
+
+#![allow(unused)]
+fn main() {
+let a = [1, 2, 3, 4, 5];
+
+let slice = &a[1..3];
+}
+```
