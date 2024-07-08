@@ -151,3 +151,161 @@ fn main() {
     let subject = AlwaysEqual;
 }
 ```
+## 一个使用结构体的示例程序
+编写一个计算长方形面积的程序：使用`cargo`新建一个叫做*rectangles*的二进制程序，它获取以像素为单位的长方形的宽度和高度，并计算出长方形的面积。
+
+## 方法语法
+方法与函数类似：它们使用`fn`关键字和名称声明，可以拥有参数和返回值，同时包含在某处调用该方法时会执行的代码。但是方法和函数不同，它们在结构体的上下文中被定义(或是枚举或`trait`对象的上下文)，并且它们第一个参数总是`self`,它代表调用该方法的结构体实例
+### 定义方法
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        rect1.area()
+    );
+}
+```
+为了使函数定义于`Rectangle`的上下文，使用了一个`impl`块(implementation的缩写)，这个`impl`块中的所有内容都将与`Rectangle`类型相关联。
+这里选择`&self`是因为我们不想获取所有权，只希望能够读取结构体中的数据，而不是写入。若想要在方法中改变调用方法的实例，需要将第一个参数改为`&mut self`。
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn width(&self) -> bool {
+        self.width > 0
+    }
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+
+    if rect1.width() {
+        println!("The rectangle has a nonzero width; it is {}", rect1.width);
+    }
+}
+```
+与字段同名的方法将被定义为只返回字段中的值，这样的方法被称为`getters`，`getters`可以把字段变成私有的，但方法是公共的，这样就可以把对字段的只读访问作为该类型公共API的一部分。
+### 带有更多参数的方法
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    let rect2 = Rectangle {
+        width: 10,
+        height: 40,
+    };
+    let rect3 = Rectangle {
+        width: 60,
+        height: 45,
+    };
+
+    println!("Can rect1 hold rect2? {}", rect1.can_hold(&rect2));
+    println!("Can rect1 hold rect3? {}", rect1.can_hold(&rect3));
+}
+```
+### 关联函数
+所有在`impl`块中定义的函数被称为**关联函数**，它们与`impl`后面命名的类型相关。我们可以定义不以 `self` 为第一参数的关联函数（因此不是方法），因为它们并不作用于一个结构体的实例。我们已经使用了一个这样的函数，`String::from` 函数，它是在 `String` 类型上定义的。
+关联函数经常被用作返回一个结构体新实例的构造函数。
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn square(size: u32) -> Rectangle {
+        Rectangle {
+            width: size,
+            height: size,
+        }
+    }
+}
+
+fn main() {
+    let sq = Rectangle::square(3);
+}
+```
+使用结构体名和 `::` 语法来调用这个关联函数：比如 `let sq = Rectangle::square(3);`。这个方法位于结构体的命名空间中：`::` 语法用于关联函数和模块创建的命名空间。
+### 多个impl块
+每个结构体都允许拥有多个`impl`块，但每个方法有其自己的`impl`块
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+}
+
+impl Rectangle {
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    let rect2 = Rectangle {
+        width: 10,
+        height: 40,
+    };
+    let rect3 = Rectangle {
+        width: 60,
+        height: 45,
+    };
+
+    println!("Can rect1 hold rect2? {}", rect1.can_hold(&rect2));
+    println!("Can rect1 hold rect3? {}", rect1.can_hold(&rect3));
+}
+```
+
