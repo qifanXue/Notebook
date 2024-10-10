@@ -21,3 +21,4 @@
 7. 箭头：左小箭头 $\leftarrow$, 右小箭头 $\rightarrow$, 左大箭头 $\Leftarrow$, 右大箭头 $\Rightarrow$, 右长箭头 $\xrightarrow[fgh]{abcde}$
 8. 矩阵：bmat2  =>  $\begin{bmatrix} ... & ... \\ ... & ... \\\end{bmatrix}$;vec2  =>  $\begin{pmatrix} ... \\ ... \\\end{pmatrix}$
 9. 图片缩放：![Alt text](image-7.png){width="50%" height="50%"}
+10. 代码块 ```代码语言```
