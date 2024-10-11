@@ -41,3 +41,28 @@ int main(){
 - 指针： 通常用于动态内存分配、数组操作以及函数参数传递。
 - 引用： 通常用于函数参数传递、操作符重载以及创建别名。
 
+## 数据类型
+- 数据类型的长度
+$short(至少16位) \leq int \leq long(至少32位) \leq longlong$ 
+- 计算数据类型的大小
+```C++
+int main(){
+    cout << "short is " << sizeof(short) << " bytes.\n";//2
+    cout << "int is " << sizeof(int) << " bytes.\n";//4
+    cout << "long is " << sizeof(long) << " bytes.\n";//8
+    cout << "long long is " << sizeof(long long) << " bytes.\n";//8
+}
+```
+- 符号常量 引入头文件<climits>
+```C++
+#include<iostream>
+#include<climits>
+
+using namespace std;
+
+int main(){
+    cout << "INT_MAX is " << INT_MAX << endl;//2147483647
+    cout << "INT_MIN is " << INT_MIN << endl;//-2147483648
+}
+```
+
