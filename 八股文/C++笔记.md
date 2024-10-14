@@ -65,4 +65,108 @@ int main(){
     cout << "INT_MIN is " << INT_MIN << endl;//-2147483648
 }
 ```
+## 关键字
+### const关键字
+1. 常量指针
+强调指针指向的对象不可更改，即不可以通过常量指针来改变常量，但是可以更改指针指向的对象
+`const int* a = &temp;`
+`int const *a = &temp;`
+```C++
+int main(){
+    int temp = 10, temp1 = 40;
+    const int* a = &temp;
+    cout << "a的地址是 " << &a << endl;//0x16fa6f280
+    cout << "a的内容是 " << a << endl;//0x16fa6f28c
+    cout << "a指向的对象是 " << *a << endl;//10
+    //*a = 20; 报错，不能通过改变常量指针来改变对象
+    temp = 20;
+    cout << "a指向的对象是 " << *a << endl;//20
+    //a指向的对象可以改变
+    a = &temp1;
+    cout << "a的地址是 " << &a << endl;//0x16fa6f280
+    cout << "a的内容是 " << a << endl;//0x16fa6f288
+    cout << "a指向的对象是 " << *a << endl;//40
+}
+```
+
+2. 指针常量
+强调指针指向的对象不可更改，但是可以通过指针改变对象的值
+`int* const a = &temp;`
+```C++
+int main(){
+    int temp = 10, temp1 = 40;
+    int* const a = &temp; 
+    cout << "a的地址是 " << &a << endl;//0x16fa6f280
+    cout << "a的内容是 " << a << endl;//0x16fa6f28c
+    cout << "temp的地址是 " << &temp << endl;//0x16b1cf28c
+    cout << "a指向的对象是 " << *a << endl;//10
+
+    *a = 20;
+    cout << "temp的值是 " << temp << endl;//20
+
+    //a = &temp1;报错，a指向的对象不可以改变
+}
+```
+### static关键字
+`static`关键字主要用于控制变量及函数的生命周期、作用域以及访问权限。
+1. 静态变量
+- 在函数内部用`static`关键字修饰的变量称为静态变量
+- 静态变量在程序中的整个生命周期内存在，不会因为离开作用域而销毁
+- 静态变量可以被用来记录函数调用的次数
+```C++
+#include<iostream>
+using namespace std;
+
+void CountAdd(){
+    static int count;//静态变量初始化默认为0
+    count ++;
+    cout << "count的值是 " << count << endl;
+}
+
+int main(){
+    CountAdd();//1
+    CountAdd();//2
+}
+```
+
+2. 静态函数
+在函数前加`static`关键字，静态函数只能被本文件调用，不能被程序中其他文件调用，所以其他文件可以定义同名的函数
+```C++
+#include<iostream>
+using namespace std;
+
+static void examplefunction(){
+    cout << "Function" << endl;
+}
+
+int main(){
+    examplefunction();//Function
+}
+```
+
+3. 静态成员变量
+- 静态成员变量是在类里声明变量，在数据类型前添加`static`关键字。
+- 静态成员变量只能在类外单独定义，以便给它分配存储空间
+- 所有类的对象都可以调用静态成员变量，直接使用类名也可以调用
+```C++
+#include<iostream>
+using namespace std;
+
+class example{
+public:
+    static int examplemember;//在类内声明静态成员变量
+};
+int example::examplemember = 10;//在类外定义静态成员变量
+
+int main(){
+    example classA, classB;
+    cout << classA.examplemember << endl;//10
+    cout << example::examplemember << endl;//10
+    classB.examplemember = 20;
+    cout << classB.examplemember << endl;//20
+    example::examplemember = 30;
+    cout << example::examplemember << endl;//30
+}
+```
+
 

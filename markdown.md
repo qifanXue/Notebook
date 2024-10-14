@@ -22,3 +22,5 @@
 8. 矩阵：bmat2  =>  $\begin{bmatrix} ... & ... \\ ... & ... \\\end{bmatrix}$;vec2  =>  $\begin{pmatrix} ... \\ ... \\\end{pmatrix}$
 9. 图片缩放：![Alt text](image-7.png){width="50%" height="50%"}
 10. 代码块 ```代码语言```
+11. $\tilde{a}$
+12. $\circ$
